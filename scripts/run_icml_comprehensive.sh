@@ -1,36 +1,36 @@
 #!/bin/bash
-set -e  # 遇到错误立即停止
+set -e  # Stop on error
 
-# ================= 配置区域 =================
+# ================= Configuration Area =================
 export PROJECT_ROOT=$(pwd)
-export CUDA_VISIBLE_DEVICES=6  # 请根据实际情况修改显卡编号
+export CUDA_VISIBLE_DEVICES=6  # Please modify the GPU ID according to your actual situation
 
-# 输入与输出
+# Input and Output
 PROMPT_FILE="data/prompt_icml_comprehensive_163.txt"
 BASE_OUT_DIR="results_comprehensive_163"
 LOG_DIR="logs_comprehensive_163"
 
-# 统一超参 (FLUX-dev) - 激进参数，旨在拉大方法间差距
+# Unified Hyperparameters (FLUX-dev) - Aggressive parameters to maximize differences between methods
 MODEL="flux-dev"
 STEPS=50
 WIDTH=1024
 HEIGHT=1024
-INTERVAL=10        # 激进：增大到 10，强迫模型更依赖缓存
+INTERVAL=10        # Aggressive: Increase to 10 to force the model to rely more on cache
 MAX_ORDER=2
-FIRST_ENHANCE=2    # 激进：减小到 2，让误差更早介入
-HICACHE_SCALE=0.6  # 保持 0.6 以维持锐度
+FIRST_ENHANCE=2    # Aggressive: Decrease to 2 to allow errors to intervene earlier
+HICACHE_SCALE=0.6  # Keep at 0.6 to maintain sharpness
 
-# 创建目录
+# Create directories
 mkdir -p "$BASE_OUT_DIR" "$LOG_DIR" "outputs"
 
 echo "========================================================"
-echo "🚀 开始 ICML Comprehensive 实验 (163 Prompts, 激进参数)"
-echo "显卡: $CUDA_VISIBLE_DEVICES | 输出目录: $BASE_OUT_DIR"
-echo "参数: Interval=$INTERVAL | Enhance=$FIRST_ENHANCE | Scale=$HICACHE_SCALE"
+echo "🚀 Starting ICML Comprehensive Experiment (163 Prompts, Aggressive Parameters)"
+echo "GPU: $CUDA_VISIBLE_DEVICES | Output Directory: $BASE_OUT_DIR"
+echo "Parameters: Interval=$INTERVAL | Enhance=$FIRST_ENHANCE | Scale=$HICACHE_SCALE"
 echo "========================================================"
 
 # ------------------------------------------------------
-# 1. GT (Original) - 全量推理基准
+# 1. GT (Original) - Full inference baseline
 # ------------------------------------------------------
 echo "[1/8] Running Original (GT)..."
 CUDA_VISIBLE_DEVICES=6 /usr/bin/time -v bash scripts/sample.sh \
@@ -97,12 +97,12 @@ CUDA_VISIBLE_DEVICES=6 /usr/bin/time -v bash scripts/sample.sh \
     --output_dir "$BASE_OUT_DIR" 2>&1 | tee "$LOG_DIR/clusca.log"
 
 # ------------------------------------------------------
-# 7. EigenCache - Calibration (校准)
+# 7. EigenCache - Calibration
 # ------------------------------------------------------
 KERNEL_PATH="outputs/kernel_comprehensive_i${INTERVAL}.pt"
 echo "[7/8] Running EigenCache Calibration (Generating Kernel)..."
-# 注意：这里直接使用 src/sample.py 以便传入特定参数
-# 校准时使用前 30 条 prompt 即可，节省时间
+# Note: Using src/sample.py directly to pass specific parameters
+# Use the first 30 prompts for calibration to save time, which is sufficient to cover the distribution
 CUDA_VISIBLE_DEVICES=6 python src/sample.py \
     --prompt_file "$PROMPT_FILE" --limit 30 --model_name $MODEL \
     --cache_mode Taylor --cache_method eigencache --schedule fixed \
@@ -112,7 +112,7 @@ CUDA_VISIBLE_DEVICES=6 python src/sample.py \
     --eigencache_kernel_path "$KERNEL_PATH" 2>&1 | tee "$LOG_DIR/eigencache_calib.log"
 
 # ------------------------------------------------------
-# 8. EigenCache - Inference (推理)
+# 8. EigenCache - Inference
 # ------------------------------------------------------
 echo "[8/8] Running EigenCache Inference (Fixed Schedule)..."
 CUDA_VISIBLE_DEVICES=6 /usr/bin/time -v bash scripts/sample.sh \
@@ -125,7 +125,7 @@ CUDA_VISIBLE_DEVICES=6 /usr/bin/time -v bash scripts/sample.sh \
     --output_dir "$BASE_OUT_DIR" 2>&1 | tee "$LOG_DIR/eigencache_fixed.log"
 
 echo "========================================================"
-echo "✅ 所有实验运行完毕！"
-echo "结果目录: $BASE_OUT_DIR"
-echo "日志目录: $LOG_DIR"
+echo "✅ All experiments completed!"
+echo "Results directory: $BASE_OUT_DIR"
+echo "Log directory: $LOG_DIR"
 echo "========================================================"

@@ -5,12 +5,12 @@ from PIL import Image
 from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import peak_signal_noise_ratio as psnr
 
-# ================= 配置区域 =================
+# ================= Configuration Area =================
 
-# 1. 根目录
-ROOT_DIR = r"/home/anonymous/project
+# 1. Root directory
+ROOT_DIR = r"/home/anonymous/project"
 
-# 2. 定义要对比的方法 (显示名称, 文件夹相对路径)
+# 2. Define methods to compare (Display Name, Relative Folder Path)
 METHODS = [
     ("Original (GT)", "original/mn_flux-dev_i_6_o_2_s_50_hs_0.7"),
     ("ToCa",          "toca/mn_flux-dev_i_6_o_2_s_50_hs_0.7"),
@@ -19,10 +19,10 @@ METHODS = [
     # ("EigenCache",    "taylor/mn_flux-dev_i_6_o_2_s_50_hs_0.7_cm_eigencache_sch_fixed"),
 ]
 
-# 3. 选择要展示的图片索引
+# 3. Select image indices to display
 SELECTED_INDICES = [0, 1, 2, 3]
 
-# 4. 是否显示差值图 (Heatmap)
+# 4. Whether to show difference map (Heatmap)
 SHOW_DIFF = True
 
 # ===========================================
@@ -49,7 +49,7 @@ def plot_comparison():
     num_samples = len(SELECTED_INDICES)
     num_methods = len(METHODS)
     
-    # 如果显示差值图，行数翻倍（原图一行，差值图一行）
+    # If showing difference map, double the rows (one for original, one for difference)
     rows_per_sample = 2 if SHOW_DIFF else 1
     total_rows = num_samples * rows_per_sample
     
@@ -59,12 +59,12 @@ def plot_comparison():
     if total_rows == 1: axes = [axes]
     if num_methods == 1: axes = [[ax] for ax in axes]
 
-    gt_images = {} # 缓存 GT 图片用于计算差值
+    gt_images = {} # Cache GT images for difference calculation
 
     for i, img_idx in enumerate(SELECTED_INDICES):
         row_base = i * rows_per_sample
         
-        # 先加载 GT 图片
+        # Load GT image first
         gt_path = find_image_path(os.path.join(ROOT_DIR, METHODS[0][1]), img_idx)
         if gt_path:
             gt_images[img_idx] = load_image(gt_path)
@@ -81,10 +81,10 @@ def plot_comparison():
             img_data = load_image(img_path)
             
             if img_data is not None:
-                # 1. 显示原图
+                # 1. Show original image
                 ax_img.imshow(img_data)
                 
-                # 计算指标 (相对于 GT)
+                # Calculate metrics (relative to GT)
                 metric_text = ""
                 if j > 0 and gt_images[img_idx] is not None and img_data.shape == gt_images[img_idx].shape:
                     try:
@@ -94,34 +94,34 @@ def plot_comparison():
                     except Exception as e:
                         print(f"Metric error: {e}")
 
-                # 设置标题（仅第一行）
+                # Set title (only for the first row)
                 if i == 0:
                     ax_img.set_title(method_name, fontweight='bold', fontsize=12)
                 
-                # 设置左侧标签（仅第一列）
+                # Set left label (only for the first column)
                 if j == 0:
                     ax_img.set_ylabel(f"Prompt {img_idx}", fontweight='bold', fontsize=10)
 
-                # 在图片下方添加指标文字
+                # Add metric text below image
                 if metric_text:
                     ax_img.set_xlabel(metric_text, fontsize=8)
 
-                # 2. 显示差值图 (如果有)
+                # 2. Show difference map (if enabled)
                 if SHOW_DIFF:
                     ax_diff = axes[row_base + 1][j]
                     if j == 0:
-                        # GT 的差值图是全黑，或者显示 "Reference"
+                        # GT difference map is black, or show "Reference"
                         ax_diff.text(0.5, 0.5, "Reference", ha='center', va='center')
                         ax_diff.set_facecolor('#f0f0f0')
                         ax_diff.set_ylabel("Difference", fontsize=9, fontstyle='italic')
                     elif gt_images[img_idx] is not None and img_data.shape == gt_images[img_idx].shape:
-                        # 计算绝对差值
+                        # Calculate absolute difference
                         diff = np.abs(gt_images[img_idx].astype(np.float32) - img_data.astype(np.float32))
-                        # 转为灰度并增强对比度 (x5) 以便观察
+                        # Convert to grayscale and enhance contrast (x5) for visibility
                         diff_gray = np.mean(diff, axis=2) * 5.0
                         diff_gray = np.clip(diff_gray, 0, 255).astype(np.uint8)
                         
-                        # 使用热力图显示 (magma: 黑->红->黄)
+                        # Show using heatmap (magma: black->red->yellow)
                         ax_diff.imshow(diff_gray, cmap='magma')
                     else:
                         ax_diff.text(0.5, 0.5, "N/A", ha='center', va='center')

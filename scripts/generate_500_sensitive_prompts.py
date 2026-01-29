@@ -2,7 +2,7 @@ import os
 import random
 
 def main():
-    # --- 基础模板 ---
+    # --- Basic Templates ---
     templates = [
         "A {texture} texture of {object}, {lighting} lighting, {style} style.",
         "A {structure} made of {material}, {lighting} lighting, {style} style.",
@@ -11,9 +11,9 @@ def main():
         "A {interaction_scene}, {lighting} lighting, {style} style."
     ]
 
-    # --- 敏感元素库 ---
+    # --- Sensitive Elements Library ---
     
-    # 1. 高频纹理 (对模糊敏感)
+    # 1. High-frequency textures (sensitive to blur)
     textures = [
         "dense wireframe mesh", "intricate lace", "carbon fiber weave", "snake skin scales", 
         "peacock feather", "butterfly wing scales", "fingerprint ridges", "circuit board traces",
@@ -21,7 +21,7 @@ def main():
         "QR code pattern", "halftone dot pattern", "interference fringe", "diffraction grating"
     ]
     
-    # 2. 复杂物体 (对结构变形敏感)
+    # 2. Complex objects (sensitive to structural deformation)
     objects = [
         "a mechanical watch movement", "a dandelion seed head", "a snowflake crystal", 
         "a spider web with dew drops", "a microchip under electron microscope", 
@@ -29,7 +29,7 @@ def main():
         "a complex origami dragon", "a ship in a bottle", "a house of cards"
     ]
     
-    # 3. 不稳定结构 (对位置漂移敏感)
+    # 3. Unstable structures (sensitive to positional drift)
     structures = [
         "precariously balanced tower of dice", "falling dominoes chain reaction", 
         "shattering glass sculpture", "splashing water crown", "exploding powder paint",
@@ -37,14 +37,14 @@ def main():
         "Mandelbrot set zoom", "Fibonacci spiral of sunflowers"
     ]
     
-    # 4. 材质 (对光影/焦散敏感)
+    # 4. Materials (sensitive to lighting/caustics)
     materials = [
         "transparent glass", "polished chrome", "iridescent opal", "translucent jelly",
         "refractive diamond", "subsurface scattering wax", "holographic foil", "liquid mercury",
         "soap bubbles", "fiberglass", "aerogel", "obsidian"
     ]
     
-    # 5. 复杂场景 (对语义一致性敏感)
+    # 5. Complex scenes (sensitive to semantic consistency)
     complex_scenes = [
         "a busy Times Square crossing in rain", "a dense tropical rainforest floor", 
         "a library with thousands of books", "a crowd of people holding colorful umbrellas",
@@ -52,7 +52,7 @@ def main():
         "a futuristic city skyline with flying cars", "a steampunk workshop with tools"
     ]
     
-    # 6. 文本场景 (对拼写敏感)
+    # 6. Text scenes (sensitive to spelling)
     text_scenes = [
         "neon sign", "chalkboard menu", "printed receipt", "street graffiti", 
         "vintage typewriter page", "computer terminal screen", "newspaper headline",
@@ -69,7 +69,7 @@ def main():
         "engraved metal", "embossed gold foil", "dripping blood paint", "matrix code rain"
     ]
     
-    # 7. 互动场景 (对属性绑定敏感)
+    # 7. Interaction scenes (sensitive to attribute binding)
     interaction_scenes = [
         "a cat playing chess with a dog", "an astronaut riding a horse on Mars",
         "a robot painting a portrait of a human", "a teddy bear repairing a computer",
@@ -77,7 +77,7 @@ def main():
         "a tree growing out of a book", "a hand holding a burning flame"
     ]
 
-    # 8. 风格与光影
+    # 8. Style and Lighting
     lightings = [
         "cinematic", "volumetric", "rembrandt", "neon noir", "bioluminescent", 
         "harsh sunlight", "soft studio", "dramatic rim", "caustic", "strobe"
@@ -88,7 +88,7 @@ def main():
         "oil painting", "vector art", "blueprint", "thermal imaging", "x-ray"
     ]
 
-    # --- 生成逻辑 ---
+    # --- Generation Logic ---
     prompts = set()
     target_count = 500
     
@@ -132,7 +132,7 @@ def main():
             
         prompts.add(p)
 
-    # --- 写入文件 ---
+    # --- Write to file ---
     output_dir = "data"
     os.makedirs(output_dir, exist_ok=True)
     output_path = os.path.join(output_dir, "prompt_icml_sensitive_500.txt")

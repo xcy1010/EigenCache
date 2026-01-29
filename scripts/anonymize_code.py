@@ -2,47 +2,60 @@ import os
 import shutil
 import re
 
-# 配置
+# Configuration
 SOURCE_DIR = "src"
 TARGET_DIR = "EigenCache"
 SENSITIVE_PATTERNS = [
-    r"anonymous",  # 用户名
-    r"EigenCache-Project",  # 项目名
-    r"/home/anonymous/project
-    r"/home/anonymous/]+",  # Linux 绝对路径
-    r"/data/models",  # AutoDL 路径
-    r"model-provider", # 机构名 (可选，视比赛要求而定，这里先保留或替换为 generic-org)
+    r"anonymous",  # Username
+    r"EigenCache-Project",  # Project name
+    r"/home/anonymous/project", # Windows absolute path
+    r"/home/anonymous/]+",  # Linux absolute path
+    r"/data/models",  # AutoDL path
+    r"model-provider", # Organization name (optional, depends on competition rules, keep or replace with generic-org)
 ]
 
 REPLACEMENTS = {
     "EigenCache-Project": "EigenCache-Project",
-    "flux": "eigencache_core", # 将 flux 包重命名为 eigencache_core 以隐藏来源
+    "flux": "eigencache_core", # Rename flux package to eigencache_core to hide origin
     "anonymous": "anonymous_user",
     "/data/models": "/tmp/data",
 }
 
 def anonymize_content(content):
     for pattern in SENSITIVE_PATTERNS:
-        # 简单的字符串替换，对于正则需要更复杂的处理，这里主要处理明确的字符串
+        # Simple string replacement, regex needs more complex handling, here mainly handles explicit strings
         pass
     
-    # 使用替换字典
+    # Use replacement dictionary
     for old, new in REPLACEMENTS.items():
         content = content.replace(old, new)
         
-    # 处理绝对路径正则
-    content = re.sub(r"C:[\\/]Users[\\/][^\\/]+", "/home/anonymous/home/[^/]+", "/home/anonymous/文件夹中的敏感词
+    # Handle absolute path regex
+    content = re.sub(r"C:[\\/]Users[\\/][^\\/]+", "/home/anonymous", content)
+    content = re.sub(r"/home/[^/]+", "/home/anonymous", content)
+    
+    return content
+
+def process_directory(src, dst):
+    if not os.path.exists(dst):
+        os.makedirs(dst)
+        
+    for item in os.listdir(src):
+        s = os.path.join(src, item)
+        d = os.path.join(dst, item)
+        
+        # Rename sensitive words in file/folder names
         for old, new in REPLACEMENTS.items():
             if old in item:
                 d = os.path.join(dst, item.replace(old, new))
                 
         if os.path.isdir(s):
-            # 忽略 __pycache__
+            # Ignore __pycache__
             if item == "__pycache__" or item.startswith("."):
                 continue
             process_directory(s, d)
         else:
-            # 只处理文本文件
+            # Only process text files
             if s.endswith((".py", ".md", ".txt", ".sh", ".toml")):
                 try:
                     with open(s, "r", encoding="utf-8") as f:
@@ -59,15 +72,15 @@ def anonymize_content(content):
                 shutil.copy2(s, d)
 
 def main():
-    # 1. 清理旧的 EigenCache 文件夹
+    # 1. Clean up old EigenCache folder
     if os.path.exists(TARGET_DIR):
         shutil.rmtree(TARGET_DIR)
     
-    # 2. 复制并脱敏 src 目录
+    # 2. Copy and anonymize src directory
     print(f"Processing {SOURCE_DIR} -> {TARGET_DIR}/src...")
     process_directory(SOURCE_DIR, os.path.join(TARGET_DIR, "src"))
     
-    # 3. 复制并脱敏 README 和 requirements (如果有)
+    # 3. Copy and anonymize README and requirements (if any)
     for file in ["README.md", "pyproject.toml", "requirements.txt"]:
         if os.path.exists(file):
             print(f"Processing {file}...")
@@ -77,7 +90,7 @@ def main():
             with open(os.path.join(TARGET_DIR, file), "w", encoding="utf-8") as f:
                 f.write(new_content)
 
-    # 4. 创建一个简单的 setup 说明
+    # 4. Create a simple setup instruction
     with open(os.path.join(TARGET_DIR, "ANONYMOUS_SETUP.md"), "w", encoding="utf-8") as f:
         f.write("# Anonymous Submission\n\nThis code has been anonymized for peer review.\n\n## Usage\n\nSee `src/sample.py` for inference logic.")
 
