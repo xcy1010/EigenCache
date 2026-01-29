@@ -1,6 +1,6 @@
-# HiCache-Flux (ICLR Submission Package)
+# EigenCache (ICLR Submission Package)
 
-This repository contains the reproducible code for the HiCache-Flux paper. It packages the accelerated sampling pipelines, multi-GPU launcher, and evaluation tooling used in our experiments while omitting proprietary checkpoints.
+This repository contains the reproducible code for the EigenCache paper. It packages the accelerated sampling pipelines, multi-GPU launcher, and evaluation tooling used in our experiments while omitting proprietary checkpoints.
 
 ## Quick Start
 
@@ -16,12 +16,12 @@ This repository contains the reproducible code for the HiCache-Flux paper. It pa
 
 - **Single GPU:**
   ```bash
-  bash scripts/sample.sh --mode HiCache --interval 5 --max_order 2 --hicache_scale 0.6
+  bash scripts/sample.sh --mode EigenCache --interval 5 --max_order 2 --hicache_scale 0.6
   ```
 - **Multi GPU launcher (shards prompts across devices):**
   ```bash
-  bash RUN/multi_gpu_launcher.sh --mode HiCache --gpus 0,1 \
-       --prompt-file data/prompt.txt --base-output-dir results/hicache
+  bash RUN/multi_gpu_launcher.sh --mode EigenCache --gpus 0,1 \
+       --prompt-file data/prompt.txt --base-output-dir results/eigencache
   ```
   Additional options are documented in `RUN/multi_gpu_launcher.sh`.
 
@@ -31,7 +31,7 @@ Aggregate outputs can be scored with ImageReward, PSNR, SSIM, and CLIP metrics v
 ```bash
 bash evaluation/run_eval.sh \
     --gt results/taylor/interval_1/order_2 \
-    --acc HiCache=results/hicache/run_xx
+    --acc EigenCache=results/eigencache/run_xx
 ```
 The script automatically activates the local environment, hashes logs under `evaluation/logs/`, and supports multiple `--acc` inputs.
 
@@ -41,7 +41,7 @@ The script automatically activates the local environment, hashes logs under `eva
 - `RUN/multi_gpu_launcher.sh` – orchestrates distributed sampling.
 - `RUN/multi_gpu_launcher.py` – shards prompts and merges outputs.
 - `evaluation/run_eval.sh` – wrapper for metric computation.
-- `src/` – Python implementation of the HiCache-Flux kernels and utilities.
+- `src/` – Python implementation of the EigenCache kernels and utilities.
 - `models/` – placeholder for downloaded weights (kept empty in git).
 - `results/` – default output directory for generated samples.
 
